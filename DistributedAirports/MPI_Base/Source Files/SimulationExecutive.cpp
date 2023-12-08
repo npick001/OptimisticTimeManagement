@@ -3,6 +3,10 @@
 #include "Communication.h"
 
 using namespace std;
+#define COLOR_RED 2
+#define COLOR_GREEN 3
+#define START_GVT 4
+#define COMPUTE_GVT 5
 
 class SimulationExecutive
 {
@@ -10,6 +14,12 @@ public:
 	static void InitializeSimulation()
 	{
 		_simTime = 0.0;
+		_sendArray = new int[CommunicationSize()];
+
+		for(int i = 0; i < CommunicationSize(); i++)
+		{
+			_sendArray[i] = 0;
+		}
 	}
 
 	static Time GetSimulationTime() { return _simTime; }
@@ -121,6 +131,28 @@ public:
 			}
 		}
 	}
+
+	void StartGVT(int* sendBuffer)
+	{
+		// Send a message to everyone to start GVT
+		for (int i = 0; i < CommunicationSize(); i++) {
+			if (i != CommunicationRank()) {
+				// Send a message to everyone to start GVT
+				int tag = START_GVT;
+
+				_sendArray[i]++;
+
+				int* data_buffer = (int*)malloc(sizeof(double) + sizeof(int) * CommunicationSize());
+				memcpy(data_buffer, &min(_minRedTS, _simTime), sizeof(double));
+				memcpy(data_buffer + 1, &_sendArray[0], sizeof(int) * CommunicationSize());
+
+				SendMsg(i, tag, data_buffer);
+
+				free(data_buffer);
+			}
+		}
+	}
+
 	// -----------------------------------------------
 
 private:
@@ -195,6 +227,12 @@ private:
 	static int _events_executed_OoO;
 	static int _terminationMessagesReceived; // Comm_World_Size - 1 stopping condition
 
+	static int* _sendArray;
+	static int _msgsReceived;
+	static Time _minRedTS;
+	static int _currentMsgColor;
+	static bool _computeGVT;
+
 	static std::function<void(int)> _msgHandler;
 };
 
@@ -202,6 +240,10 @@ SimulationExecutive::EventList SimulationExecutive::_eventList;
 Time SimulationExecutive::_simTime = 0.0;
 int SimulationExecutive::_events_executed_OoO = 0;
 int SimulationExecutive::_terminationMessagesReceived = 0;
+int* SimulationExecutive::_sendArray = 0;
+int SimulationExecutive::_msgsReceived = 0;
+Time SimulationExecutive::_minRedTS = 0.0;
+int SimulationExecutive::_currentMsgColor = COLOR_GREEN;
 
 std::function<void(int)> SimulationExecutive::_msgHandler = 0;
 

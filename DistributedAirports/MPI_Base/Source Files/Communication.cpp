@@ -64,6 +64,12 @@ void BroadcastTerminationMessage()
 	}
 }
 
+void SendMsg(int dest, int tag, int* dataBuffer)
+{
+	MPI_Request request;
+	MPI_Isend(dataBuffer, 1, MPI_INTEGER, dest, tag, MPI_COMM_WORLD, &request);
+}
+
 void Barrier()
 {
 	MPI_Barrier(MPI_COMM_WORLD);
