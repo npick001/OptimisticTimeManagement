@@ -153,6 +153,32 @@ public:
 		}
 	}
 
+	bool ComputeGVT()
+	{
+		// Send a message to everyone to compute GVT
+		for (int i = 0; i < CommunicationSize(); i++) {
+			if (i != CommunicationRank()) {
+				// Send a message to everyone to compute GVT
+				int tag = COMPUTE_GVT;
+
+				_sendArray[i]++;
+
+				int* data_buffer = (int*)malloc(sizeof(double) + sizeof(int) * CommunicationSize());
+				memcpy(data_buffer, &min(_minRedTS, _simTime), sizeof(double));
+				memcpy(data_buffer + 1, &_sendArray[0], sizeof(int) * CommunicationSize());
+
+				SendMsg(i, tag, data_buffer);
+
+				free(data_buffer);
+			}
+		}
+
+		// Wait for everyone else to finish
+		TerminationLoop();
+
+		return true;
+
+	}
 	// -----------------------------------------------
 
 private:
@@ -281,3 +307,9 @@ void RegisterMsgHandler(std::function<void(int)> eventHandler)
 {
 	SimulationExecutive::RegisterMsgHandler(eventHandler);
 }
+
+bool ComputeGVT()
+{
+	return false;
+}
+
