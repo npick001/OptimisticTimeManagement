@@ -153,6 +153,29 @@ public:
 		}
 	}
 
+	void ComputeGVT(int* sendBuffer)
+	{
+		
+	}
+
+	//Method responsible for sending the GVT of this process to all other processes
+	void BroadcastGVT(int* sendBuffer)
+	{
+
+	}
+
+	void toggleColor()
+	{
+		if (_currentMsgColor == COLOR_GREEN)
+		{
+			_currentMsgColor = COLOR_RED;
+		}
+		else
+		{
+			_currentMsgColor = COLOR_GREEN;
+		}
+	}
+
 	// -----------------------------------------------
 
 private:
